@@ -1,9 +1,9 @@
 import { format, parseISO } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import { GetStaticPaths, GetStaticProps } from 'next';
-import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import { api } from '../../service/api';
 import { convertDurationToTimeString } from '../../utils/convertDurationToTimeString';
@@ -26,7 +26,7 @@ type EpisodeProp = {
 }
 
 export default function Episode({ episode }: EpisodeProp){
-  const router = useRouter()
+  const router = useRouter();
   
   return (
     <div className={styles.episode}>
@@ -59,11 +59,40 @@ export default function Episode({ episode }: EpisodeProp){
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
+  // buscar categorias mais acessadas
+  const { data } = await api.get('episodes', {
+    params:{
+      _limit: 2,
+      _sort: 'published_at',
+      _order: 'desc'
+    }
+  });
+
+  const paths = data.map(episode => {
+    return{
+      params: {
+        slug: episode.id
+      }
+    }
+  })
+
   return {
-    paths: [],
+    paths,
     fallback: 'blocking'
   }
+
+  // increment static regeneration
 }
+
+/*
+
+      { 
+        params: {
+          slug: 'a-importancia-da-contribuicao-em-open-source'
+        }
+      }
+    
+*/
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
   const { slug } = ctx.params;
